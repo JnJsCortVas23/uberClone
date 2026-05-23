@@ -11,6 +11,7 @@ import {
     ScrollView,
 } from 'react-native';
 import { COLORS } from '../constants';
+import { loginUser } from '../services/authService';
 
 const LoginScreen = ({ navigation }) => {
     const [email, setEmail] = useState('');
@@ -39,10 +40,15 @@ const LoginScreen = ({ navigation }) => {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleLogin = () => {
+    const handleLogin = async () => {
         if (validate()) {
-            // Firebase auth goes here
-            console.log('Login:', email, password);
+            const result = await loginUser(email, password);
+            if (result.success) {
+                console.log('Login exitoso:', result.user.email);
+                // navigation.navigate('Home') — lo activamos después
+            } else {
+                setErrors({ general: 'Correo o contraseña incorrectos' });
+            }
         }
     };
 
@@ -97,7 +103,7 @@ const LoginScreen = ({ navigation }) => {
                             style={styles.eyeButton}
                             onPress={() => setShowPassword(!showPassword)}>
                             <Text style={styles.eyeText}>
-                                {showPassword ? '🙈' : '👁️'}
+                                {showPassword ? ' ◠' : '👁️'}
                             </Text>
                         </TouchableOpacity>
                     </View>
@@ -114,6 +120,10 @@ const LoginScreen = ({ navigation }) => {
                     <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
                         <Text style={styles.loginButtonText}>Ingresar</Text>
                     </TouchableOpacity>
+
+                    {errors.general && (
+                        <Text style={styles.errorText}>{errors.general}</Text>
+                    )}
 
                     {/* Register */}
                     <View style={styles.registerContainer}>
