@@ -103,7 +103,7 @@ const LoginScreen = ({ navigation }) => {
                             style={styles.eyeButton}
                             onPress={() => setShowPassword(!showPassword)}>
                             <Text style={styles.eyeText}>
-                                {showPassword ? ' ◠' : '👁️'}
+                                {showPassword ? ' ◠' : '👁'}
                             </Text>
                         </TouchableOpacity>
                     </View>

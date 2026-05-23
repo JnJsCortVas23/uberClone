@@ -1,6 +1,8 @@
 import React, {useState, useEffect} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {Text} from 'react-native';
 import auth from '@react-native-firebase/auth';
 
 // Auth Screens
@@ -9,8 +11,12 @@ import RegisterScreen from '../screens/RegisterScreen';
 
 // App Screens
 import HomeScreen from '../screens/HomeScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+
+import {COLORS} from '../constants';
 
 const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
 
 const AuthStack = () => (
   <Stack.Navigator screenOptions={{headerShown: false}}>
@@ -19,10 +25,44 @@ const AuthStack = () => (
   </Stack.Navigator>
 );
 
-const AppStack = () => (
-  <Stack.Navigator screenOptions={{headerShown: false}}>
-    <Stack.Screen name="Home" component={HomeScreen} />
-  </Stack.Navigator>
+const AppTabs = () => (
+  <Tab.Navigator
+    screenOptions={({route}) => ({
+      headerShown: false,
+      tabBarActiveTintColor: COLORS.primary,
+      tabBarInactiveTintColor: COLORS.gray,
+      tabBarStyle: {
+        backgroundColor: COLORS.white,
+        borderTopWidth: 1,
+        borderTopColor: COLORS.lightGray,
+        paddingBottom: 6,
+        paddingTop: 6,
+        height: 60,
+      },
+      tabBarLabel: ({color}) => {
+        const labels = {
+          Home: 'Inicio',
+          Profile: 'Perfil',
+        };
+        return (
+          <Text style={{color, fontSize: 12, fontWeight: '600'}}>
+            {labels[route.name]}
+          </Text>
+        );
+      },
+      tabBarIcon: ({color, size}) => {
+        const icons = {
+          Home: '🏠',
+          Profile: '👤',
+        };
+        return (
+          <Text style={{fontSize: size - 4}}>{icons[route.name]}</Text>
+        );
+      },
+    })}>
+    <Tab.Screen name="Home" component={HomeScreen} />
+    <Tab.Screen name="Profile" component={ProfileScreen} />
+  </Tab.Navigator>
 );
 
 const AppNavigator = () => {
@@ -43,7 +83,7 @@ const AppNavigator = () => {
 
   return (
     <NavigationContainer>
-      {user ? <AppStack /> : <AuthStack />}
+      {user ? <AppTabs /> : <AuthStack />}
     </NavigationContainer>
   );
 };
