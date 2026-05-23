@@ -1,97 +1,118 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+UberClone — Aplicación Móvil de Transporte
 
-# Getting Started
+"Tus viajes más parchados"
+Proyecto Final — Desarrollo Móvil 2026-1
+Tecnológico de Antioquia · Docente: Paula Andrea Muñoz Correa
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
 
-## Step 1: Start Metro
+📋 Descripción
+Aplicación móvil multiplataforma inspirada en Uber, construida con React Native CLI para iOS y Android. Integra un ecosistema completo de APIs de Google y Firebase para ofrecer una experiencia de movilidad fluida y en tiempo real.
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+⚙️ Requisitos previos
+Antes de clonar el proyecto, asegúrate de tener instalado:
+HerramientaVersión recomendadaNode.jsv18 o superiorJDK17Android StudioFlamingo o superiorReact Native CLIúltima versiónGitcualquier versión reciente
+Configurar variables de entorno (Windows)
+Agrega estas variables en las Variables de entorno del sistema:
+ANDROID_HOME = C:\Users\TU_USUARIO\AppData\Local\Android\Sdk
+Agrega al PATH:
+%ANDROID_HOME%\emulator
+%ANDROID_HOME%\platform-tools
+%ANDROID_HOME%\tools
+%ANDROID_HOME%\tools\bin
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+📥 Clonar el repositorio
+bashgit clone https://github.com/JnJsCortVas23/uberClone.git
+cd uberClone
 
-```sh
-# Using npm
-npm start
+📦 Instalar dependencias
+bashnpm install
 
-# OR using Yarn
-yarn start
-```
+🔥 Configurar Firebase
+El proyecto usa Firebase para autenticación y base de datos. Debes agregar el archivo de configuración:
 
-## Step 2: Build and run your app
+Solicita el archivo google-services.json a tu compañero de equipo
+Colócalo en la ruta: android/app/google-services.json
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
 
-### Android
+⚠️ Este archivo no está en el repositorio por seguridad. Sin él la app no compilará correctamente.
 
-```sh
-# Using npm
-npm run android
 
-# OR using Yarn
-yarn android
-```
+🌿 Crear tu rama de trabajo
+Cada integrante debe trabajar en su propia rama:
+bashgit checkout -b feature/munos
+Por ejemplo:
+bashgit checkout -b feature/munos
+Confirma que estás en tu rama:
+bashgit branch
 
-### iOS
+▶️ Correr la app
+Necesitas dos terminales abiertas al mismo tiempo:
+Terminal 1 — Iniciar Metro (espera a que diga "Metro waiting on port 8081"):
+bashnpx react-native start --reset-cache
+Terminal 2 — Compilar e instalar en el dispositivo:
+bashnpx react-native run-android
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+💡 Si usas dispositivo físico, activa la Depuración USB en Opciones de desarrollador y conecta el cable antes de correr el comando.
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+Verifica que el dispositivo es detectado:
+bashadb devices
 
-```sh
-bundle install
-```
+📁 Estructura del proyecto
+uberClone/
+├── android/
+│   └── app/
+│       └── google-services.json   ← va aquí (no está en el repo)
+├── src/
+│   ├── assets/                    # Imágenes, fuentes
+│   ├── components/                # Componentes reutilizables
+│   ├── constants/                 # Colores y constantes globales
+│   ├── hooks/                     # Custom hooks
+│   ├── navigation/                # Configuración de navegación
+│   ├── redux/                     # Estado global
+│   ├── screens/                   # Pantallas de la app
+│   └── services/                  # Servicios (Firebase, APIs)
+├── App.js
+└── babel.config.js
 
-Then, and every time you update your native dependencies, run:
+🎨 Paleta de colores
+ColorHexAzul principal#1A73E8Azul oscuro#0D47A1Blanco#FFFFFFFondo#F5F8FF
 
-```sh
-bundle exec pod install
-```
+🛠️ Tecnologías utilizadas
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+React Native CLI — UI multiplataforma
+Firebase Auth — Autenticación de usuarios
+Firebase Firestore — Base de datos no relacional
+Redux Toolkit — Estado global
+React Navigation — Navegación entre pantallas (Stack + Bottom Tabs)
+Google Maps API — Mapas y rutas
+Google Places API — Búsqueda de destinos
+Stripe / MercadoPago — Pasarela de pagos
+Git — Control de versiones
 
-```sh
-# Using npm
-npm run ios
 
-# OR using Yarn
-yarn ios
-```
+📌 Flujo de trabajo Git
+bash# Siempre trabaja en tu rama
+git checkout feature/tu-nombre
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+# Guarde sus cambios
+git add .
+git commit -m "feat: descripción de lo que hiciste, pero en ingles maricon"
+git push
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+# Cuando su parte esté mela, hace merge a main
 
-## Step 3: Modify your app
+⚠️ Nunca vaya a hacer push directo a main. Suba sus cambios a tu rama y revise bien.
 
-Now that you have successfully run the app, let's make changes!
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+📲 Pantallas implementadas
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+ Login
+ Registro con validación de campos
+ Perfil de usuario
+ Solicitud de viaje
+ Seguimiento en tiempo real
+ Pasarela de pagos
+ Historial de viajes
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+📞 Contacto
+Cualquier duda sobre la configuración me habla al interno.
