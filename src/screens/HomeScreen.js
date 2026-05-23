@@ -1,8 +1,8 @@
-import React, {useState, useEffect} from 'react';
-import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
-import {COLORS} from '../constants';
+import { COLORS } from '../constants';
 
 const HomeScreen = () => {
   const user = auth().currentUser;
@@ -10,9 +10,13 @@ const HomeScreen = () => {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const doc = await firestore().collection('users').doc(user.uid).get();
-      if (doc.exists) {
-        setFullName(doc.data().fullName);
+      try {
+        const doc = await firestore().collection('users').doc(user.uid).get();
+        if (doc.exists) {
+          setFullName(doc.data()?.fullName || '');
+        }
+      } catch (error) {
+        console.log('Error fetching user:', error);
       }
     };
     fetchUser();
