@@ -1,4 +1,4 @@
-# 🚗 UberClone — Aplicación Móvil de Transporte
+# UberClone — Aplicación Móvil de Transporte
 
 > **"Tus viajes más parchados"**  
 > Proyecto Final — Desarrollo Móvil 2026-1  
