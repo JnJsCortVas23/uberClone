@@ -162,7 +162,8 @@ uberClone/
 │   │   ├── RegisterScreen.js      # ✅ Registro con validación
 │   │   ├── HomeScreen.js          # ✅ Pantalla principal
 │   │   ├── ProfileScreen.js       # ✅ Perfil editable
-│   │   └── TripRequestScreen.js   # ✅ Mapa + solicitud de viaje
+│   │   ├── TripRequestScreen.js   # ✅ Mapa + solicitud de viaje + tarifas dinámicas
+│   │   └── TripHistoryScreen.js   # 🔜 Historial de viajes
 │   └── services/
 │       └── authService.js         # Firebase Auth + Firestore
 ├── App.js
@@ -192,9 +193,21 @@ uberClone/
 - **Google Maps API** — Mapas y rutas
 - **Google Places API** — Búsqueda de destinos con Autocomplete
 - **Google Directions API** — Cálculo y dibujado de rutas
-- **Google Distance Matrix API** — Estimación de tiempo y distancia
+- **Google Distance Matrix API** — Estimación de tiempo y tarifas dinámicas
 - **Stripe / MercadoPago** — Pasarela de pagos (próximamente)
 - **Git** — Control de versiones
+
+---
+
+## 💰 Lógica de tarifas dinámicas
+
+Los precios se calculan en tiempo real según la distancia de la ruta:
+
+| Categoría | Tarifa base | Por km |
+|---|---|---|
+| Económico | $3.500 | $1.200 |
+| XL | $5.000 | $1.800 |
+| Premium | $8.000 | $2.500 |
 
 ---
 
@@ -222,6 +235,7 @@ git push
 - [x] Registro con validación de campos
 - [x] Perfil de usuario editable (sincronizado con Firestore)
 - [x] Solicitud de viaje con Google Maps + Places Autocomplete + rutas
+- [x] Tarifas dinámicas según distancia real
 - [ ] Seguimiento en tiempo real
 - [ ] Pasarela de pagos
 - [ ] Historial de viajes

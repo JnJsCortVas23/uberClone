@@ -16,12 +16,6 @@ import { COLORS } from '../constants';
 
 const GOOGLE_API_KEY = 'AIzaSyBMAS2SKZIruUL_1mhRmAUERXjWT6o_x8g';
 
-const vehicleCategories = [
-    { id: 'economy', label: 'Económico', emoji: '🚗', price: 8000 },
-    { id: 'xl', label: 'XL', emoji: '🚙', price: 15000 },
-    { id: 'premium', label: 'Premium', emoji: '🚘', price: 25000 },
-];
-
 const TripRequestScreen = () => {
     const mapRef = useRef(null);
     const [origin, setOrigin] = useState(null);
@@ -29,6 +23,11 @@ const TripRequestScreen = () => {
     const [routeCoords, setRouteCoords] = useState([]);
     const [selectedVehicle, setSelectedVehicle] = useState('economy');
     const [tripInfo, setTripInfo] = useState(null);
+    const [dynamicPrices, setDynamicPrices] = useState({
+        economy: 8000,
+        xl: 15000,
+        premium: 25000,
+    });
 
     const requestLocationPermission = async () => {
         if (Platform.OS === 'android') {
@@ -115,13 +114,26 @@ const TripRequestScreen = () => {
                     distance: leg.distance.text,
                     duration: leg.duration.text,
                 });
-                mapRef.current?.fitToCoordinates([origin, dest], {
-                    edgePadding: { top: 80, right: 80, bottom: 80, left: 80 },
-                });
+                const prices = calculatePrice(leg.distance.value);
+                setDynamicPrices(prices);
             }
         } catch (error) {
             Alert.alert('Error', 'No se pudo calcular la ruta');
         }
+    };
+
+    const calculatePrice = (distanceMeters) => {
+        const distanceKm = distanceMeters / 1000;
+        const basePrices = {
+            economy: 3500 + distanceKm * 1200,
+            xl: 5000 + distanceKm * 1800,
+            premium: 8000 + distanceKm * 2500,
+        };
+        return {
+            economy: Math.round(basePrices.economy / 100) * 100,
+            xl: Math.round(basePrices.xl / 100) * 100,
+            premium: Math.round(basePrices.premium / 100) * 100,
+        };
     };
 
     const handleDestinationSelect = (data, details) => {
@@ -134,7 +146,13 @@ const TripRequestScreen = () => {
         fetchRoute(dest);
     };
 
-    const selectedPrice = vehicleCategories.find(
+    const vehicles = [
+        { id: 'economy', label: 'Económico', emoji: '🚗', price: dynamicPrices.economy },
+        { id: 'xl', label: 'XL', emoji: '🚙', price: dynamicPrices.xl },
+        { id: 'premium', label: 'Premium', emoji: '🚘', price: dynamicPrices.premium },
+    ];
+
+    const selectedPrice = vehicles.find(
         v => v.id === selectedVehicle,
     )?.price;
 
@@ -233,7 +251,7 @@ const TripRequestScreen = () => {
                     {/* Vehicle Categories */}
                     <Text style={styles.categoryTitle}>Selecciona tu vehículo</Text>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                        {vehicleCategories.map(vehicle => (
+                        {vehicles.map(vehicle => (
                             <TouchableOpacity
                                 key={vehicle.id}
                                 style={[
@@ -264,7 +282,7 @@ const TripRequestScreen = () => {
                     <TouchableOpacity style={styles.requestButton}>
                         <Text style={styles.requestButtonText}>
                             Solicitar{' '}
-                            {vehicleCategories.find(v => v.id === selectedVehicle)?.label} · $
+                            {vehicles.find(v => v.id === selectedVehicle)?.label} · $
                             {selectedPrice?.toLocaleString()}
                         </Text>
                     </TouchableOpacity>
