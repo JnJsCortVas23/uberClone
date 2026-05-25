@@ -26,7 +26,7 @@ const ProfileScreen = () => {
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const genderOptions = ['Masculino', 'Femenino', 'Vee Pabuence', 'No se ni que soy'];
+  const genderOptions = ['Masculino', 'Femenino', 'Vee Pabuence','Therian ' ,'No se ni que soy'];
   const languageOptions = [
     {label: 'Español', value: 'es'},
     {label: 'English', value: 'en'},
