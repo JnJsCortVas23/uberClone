@@ -15,7 +15,6 @@ Aplicación móvil multiplataforma inspirada en Uber, construida con **React Nat
 ## ⚙️ Requisitos previos
 
 Antes de clonar el proyecto, asegúrate de tener instalado:
-
 | Herramienta | Versión recomendada |
 |---|---|
 | Node.js | v18 o superior |
@@ -53,16 +52,32 @@ cd uberClone
 
 ## 📦 Instalar dependencias
 
+Ejecuta estos comandos en orden:
+
+**1. Dependencias principales de navegación y estado:**
 ```bash
-npm install
+npm install @react-navigation/native @react-navigation/stack @react-navigation/bottom-tabs react-native-screens react-native-safe-area-context react-native-gesture-handler react-native-vector-icons redux @reduxjs/toolkit react-redux
 ```
 
-Esto instala automáticamente:
-- React Navigation (Stack + Bottom Tabs)
-- Firebase (Auth + Firestore)
-- Google Maps + Places Autocomplete
-- Redux Toolkit
-- Geolocation
+**2. Firebase (Auth + Firestore):**
+```bash
+npm install @react-native-firebase/app @react-native-firebase/auth @react-native-firebase/firestore
+```
+
+**3. Google Maps y Places:**
+```bash
+npm install react-native-maps react-native-google-places-autocomplete
+```
+
+**4. Geolocalización:**
+```bash
+npm install @react-native-community/geolocation
+```
+
+**5. Permisos en Android:**
+```bash
+npm install react-native-permissions
+```
 
 ---
 
@@ -148,15 +163,11 @@ uberClone/
 │       ├── google-services.json        ← va aquí (no está en el repo)
 │       └── src/main/AndroidManifest.xml  ← aquí va la API Key de Google
 ├── src/
-│   ├── assets/                    # Imágenes, fuentes
-│   ├── components/                # Componentes reutilizables
 │   ├── constants/
 │   │   ├── colors.js              # Paleta de colores de la app
 │   │   └── index.js
-│   ├── hooks/                     # Custom hooks
 │   ├── navigation/
 │   │   └── AppNavigator.js        # Stack + Bottom Tab Navigator
-│   ├── redux/                     # Estado global
 │   ├── screens/
 │   │   ├── LoginScreen.js         # ✅ Login con validación
 │   │   ├── RegisterScreen.js      # ✅ Registro con validación
@@ -215,17 +226,17 @@ Los precios se calculan en tiempo real según la distancia de la ruta:
 
 ```bash
 # Siempre trabaja en tu rama
-git checkout feature/tu-nombre
+git checkout feature/Nombre_Rama #Normalmete su nombre
 
 # Guarda tus cambios
 git add .
 git commit -m "feat: descripción de lo que hiciste, pero en inglés"
 git push
 
-# Cuando tu parte esté lista, el líder hace merge a main
+# Cuando su parte esté lista, avise para subirlo al main
 ```
 
-> ⚠️ **Nunca hagas push directo a `main`**. Sube tus cambios a tu rama y espera revisión.
+> ⚠️ **No haga push directo a `main`**. Suba sus cambios a su rama.
 
 ---
 
@@ -239,6 +250,7 @@ git push
 - [ ] Seguimiento en tiempo real
 - [ ] Pasarela de pagos
 - [ ] Historial de viajes
+- [ ] Cambiar el README.md por una documentacion actulalizada y en inglés
 
 ---
 
@@ -246,11 +258,5 @@ git push
 
 | Nombre | Rama |
 |---|---|
-| Cortés | `feature/Cortes` |
+| Cortes | `feature/Cortes` |
 | Muñoz | `feature/munos` |
-
----
-
-## 📞 Contacto
-
-Cualquier duda sobre la configuración me habla al interno.
