@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo , useCallback} from 'react';
 import {
     View,
     Text,
@@ -13,6 +13,8 @@ import MapView, { Marker, Polyline } from 'react-native-maps';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import Geolocation from '@react-native-community/geolocation';
 import { COLORS } from '../constants';
+import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
 
 const GOOGLE_API_KEY = 'AIzaSyBMAS2SKZIruUL_1mhRmAUERXjWT6o_x8g';
 
@@ -29,77 +31,17 @@ const TripRequestScreen = () => {
         premium: 25000,
     });
 
-    const requestLocationPermission = async () => {
-        if (Platform.OS === 'android') {
-            const granted = await PermissionsAndroid.request(
-                PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-                {
-                    title: 'Permiso de ubicación',
-                    message: 'UberClone necesita acceder a tu ubicación',
-                    buttonPositive: 'Permitir',
-                    buttonNegative: 'Cancelar',
-                },
-            );
-            return granted === PermissionsAndroid.RESULTS.GRANTED;
-        }
-        return true;
-    };
 
-    useEffect(() => {
-        const getLocation = async () => {
-            const hasPermission = await requestLocationPermission();
-            if (!hasPermission) {
-                Alert.alert('Error', 'Se necesita permiso de ubicación');
-                return;
-            }
-            Geolocation.getCurrentPosition(
-                position => {
-                    const coords = {
-                        latitude: position.coords.latitude,
-                        longitude: position.coords.longitude,
-                    };
-                    console.log('Ubicacion obtenida:', coords);
-                    setOrigin(coords);
-                },
-                error => {
-                    console.log('Error ubicacion:', error.code, error.message);
-                    Alert.alert('Error de ubicación', error.message);
-                },
-                { enableHighAccuracy: false, timeout: 30000, maximumAge: 10000 },
-            );
+const calculatePrice = useCallback((distanceMeters) => {
+        const distanceKm = distanceMeters / 1000;
+        return {
+            economy: Math.round((3500 + distanceKm * 1200) / 100) * 100,
+            xl: Math.round((5000 + distanceKm * 1800) / 100) * 100,
+            premium: Math.round((8000 + distanceKm * 2500) / 100) * 100,
         };
-        getLocation();
     }, []);
 
-    const decodePolyline = encoded => {
-        let points = [];
-        let index = 0;
-        let lat = 0;
-        let lng = 0;
-        while (index < encoded.length) {
-            let shift = 0;
-            let result = 0;
-            let byte;
-            do {
-                byte = encoded.charCodeAt(index++) - 63;
-                result |= (byte & 0x1f) << shift;
-                shift += 5;
-            } while (byte >= 0x20);
-            lat += result & 1 ? ~(result >> 1) : result >> 1;
-            shift = 0;
-            result = 0;
-            do {
-                byte = encoded.charCodeAt(index++) - 63;
-                result |= (byte & 0x1f) << shift;
-                shift += 5;
-            } while (byte >= 0x20);
-            lng += result & 1 ? ~(result >> 1) : result >> 1;
-            points.push({ latitude: lat / 1e5, longitude: lng / 1e5 });
-        }
-        return points;
-    };
-
-    const fetchRoute = async dest => {
+    const fetchRoute = useCallback(async (dest) => {
         if (!origin) return;
         try {
             const response = await fetch(
@@ -110,31 +52,13 @@ const TripRequestScreen = () => {
                 const points = decodePolyline(data.routes[0].overview_polyline.points);
                 setRouteCoords(points);
                 const leg = data.routes[0].legs[0];
-                setTripInfo({
-                    distance: leg.distance.text,
-                    duration: leg.duration.text,
-                });
-                const prices = calculatePrice(leg.distance.value);
-                setDynamicPrices(prices);
+                setTripInfo({ distance: leg.distance.text, duration: leg.duration.text });
+                setDynamicPrices(calculatePrice(leg.distance.value));
             }
         } catch (error) {
-            Alert.alert('Error', 'No se pudo calcular la ruta');
+            Alert.alert('Error', 'Could not calculate route');
         }
-    };
-
-    const calculatePrice = (distanceMeters) => {
-        const distanceKm = distanceMeters / 1000;
-        const basePrices = {
-            economy: 3500 + distanceKm * 1200,
-            xl: 5000 + distanceKm * 1800,
-            premium: 8000 + distanceKm * 2500,
-        };
-        return {
-            economy: Math.round(basePrices.economy / 100) * 100,
-            xl: Math.round(basePrices.xl / 100) * 100,
-            premium: Math.round(basePrices.premium / 100) * 100,
-        };
-    };
+    }, [origin, calculatePrice]);
 
     const handleDestinationSelect = (data, details) => {
         if (!details) return;
@@ -152,9 +76,31 @@ const TripRequestScreen = () => {
         { id: 'premium', label: 'Premium', emoji: '🚘', price: dynamicPrices.premium },
     ];
 
-    const selectedPrice = vehicles.find(
-        v => v.id === selectedVehicle,
-    )?.price;
+    const selectedVehicleData = useMemo(
+        () => vehicles.find(v => v.id === selectedVehicle),
+        [selectedVehicle, dynamicPrices]
+    );
+
+    const handleRequestTrip = useCallback(async () => {
+        const user = auth().currentUser;
+        if (!user || !origin || !destination || !tripInfo) return;
+        try {
+            await firestore().collection('trips').add({
+                userId: user.uid,
+                origin,
+                destination,
+                distance: tripInfo.distance,
+                duration: tripInfo.duration,
+                vehicle: selectedVehicle,
+                price: selectedVehicleData?.price,
+                status: 'requested',
+                createdAt: firestore.FieldValue.serverTimestamp(),
+            });
+            Alert.alert('¡Viaje solicitado!', 'Searching for driver...');
+        } catch (error) {
+            Alert.alert('Error', 'Could not request trip');
+        }
+    }, [origin, destination, tripInfo, selectedVehicle, selectedVehicleData]);
 
     return (
         <View style={styles.container}>
@@ -279,11 +225,11 @@ const TripRequestScreen = () => {
                     </ScrollView>
 
                     {/* Request Button */}
-                    <TouchableOpacity style={styles.requestButton}>
+                    <TouchableOpacity style={styles.requestButton} onPress={handleRequestTrip}>
                         <Text style={styles.requestButtonText}>
                             Solicitar{' '}
-                            {vehicles.find(v => v.id === selectedVehicle)?.label} · $
-                            {selectedPrice?.toLocaleString()}
+                            {selectedVehicleData?.label} · $
+                            {selectedVehicleData?.price?.toLocaleString()}
                         </Text>
                     </TouchableOpacity>
                 </View>

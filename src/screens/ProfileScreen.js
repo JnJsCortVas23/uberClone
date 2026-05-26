@@ -11,6 +11,25 @@ import {
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import {COLORS} from '../constants';
+import { launchImageLibrary } from 'react-native-image-picker';
+import storage from '@react-native-firebase/storage';
+
+const [photoURL, setPhotoURL] = useState('');
+
+const handlePickPhoto = useCallback(() => {
+    launchImageLibrary({ mediaType: 'photo', quality: 0.7 }, async (response) => {
+        if (response.didCancel || response.errorCode) return;
+        const asset = response.assets[0];
+        setPhotoURL(asset.uri); // muestra preview local
+
+        // Si quieres subirla a Firebase Storage:
+        const ref = storage().ref(`avatars/${user.uid}.jpg`);
+        await ref.putFile(asset.uri);
+        const url = await ref.getDownloadURL();
+        setPhotoURL(url);
+        await firestore().collection('users').doc(user.uid).update({ photoURL: url });
+    });
+}, [user]);
 
 const ProfileScreen = () => {
   const user = auth().currentUser;
@@ -32,11 +51,15 @@ const ProfileScreen = () => {
     {label: 'English', value: 'en'},
   ];
 
-  useEffect(() => {
+ useEffect(() => {
     const fetchProfile = async () => {
       const doc = await firestore().collection('users').doc(user.uid).get();
       if (doc.exists) {
-        setForm(prev => ({...prev, ...doc.data()}));
+        setForm(prev => ({
+          ...prev,
+          ...doc.data(),
+          email: doc.data()?.email || user.email, // guarantees email always loads
+        }));
       }
     };
     fetchProfile();
@@ -85,11 +108,21 @@ const ProfileScreen = () => {
     <ScrollView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>
+        <TouchableOpacity onPress={handlePickPhoto} style={styles.avatar}>
+    {photoURL ? (
+        <Image
+            source={{ uri: photoURL }}
+            style={styles.avatarImage}
+        />
+    ) : (
+        <Text style={styles.avatarText}>
             {form.fullName ? form.fullName.charAt(0).toUpperCase() : '?'}
-          </Text>
-        </View>
+        </Text>
+    )}
+    <View style={styles.avatarBadge}>
+        <Text style={{ color: 'white', fontSize: 12 }}>📷</Text>
+    </View>
+</TouchableOpacity>
         <Text style={styles.headerName}>{form.fullName}</Text>
       </View>
 
@@ -327,6 +360,20 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: 'bold',
   },
+
+  avatarImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+},
+avatarBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: COLORS.primary,
+    borderRadius: 10,
+    padding: 2,
+},
 });
 
 export default ProfileScreen;
