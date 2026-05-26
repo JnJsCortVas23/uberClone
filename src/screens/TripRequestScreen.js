@@ -18,7 +18,7 @@ import auth from '@react-native-firebase/auth';
 
 const GOOGLE_API_KEY = 'AIzaSyBMAS2SKZIruUL_1mhRmAUERXjWT6o_x8g';
 
-const TripRequestScreen = () => {
+const TripRequestScreen = ({ navigation }) => {
     const mapRef = useRef(null);
     const [origin, setOrigin] = useState(null);
     const [destination, setDestination] = useState(null);
@@ -82,25 +82,47 @@ const calculatePrice = useCallback((distanceMeters) => {
     );
 
     const handleRequestTrip = useCallback(async () => {
-        const user = auth().currentUser;
-        if (!user || !origin || !destination || !tripInfo) return;
-        try {
-            await firestore().collection('trips').add({
-                userId: user.uid,
-                origin,
-                destination,
-                distance: tripInfo.distance,
-                duration: tripInfo.duration,
-                vehicle: selectedVehicle,
-                price: selectedVehicleData?.price,
-                status: 'requested',
-                createdAt: firestore.FieldValue.serverTimestamp(),
-            });
-            Alert.alert('¡Viaje solicitado!', 'Searching for driver...');
-        } catch (error) {
-            Alert.alert('Error', 'Could not request trip');
-        }
-    }, [origin, destination, tripInfo, selectedVehicle, selectedVehicleData]);
+    const user = auth().currentUser;
+    if (!user || !origin || !destination || !tripInfo) return;
+    try {
+        await firestore().collection('trips').add({
+            userId: user.uid,
+            origin,
+            destination,
+            distance: tripInfo.distance,
+            duration: tripInfo.duration,
+            vehicle: selectedVehicle,
+            price: selectedVehicleData?.price,
+            status: 'requested',
+            createdAt: firestore.FieldValue.serverTimestamp(),
+        });
+        Alert.alert('¡Viaje solicitado!', 'Buscando conductor...', [
+            {
+                text: 'Ver seguimiento',
+                onPress: () => navigation.navigate('Tracking', {
+                    origin,
+                    destination,
+                    vehicle: selectedVehicle,
+                    price: selectedVehicleData?.price,
+                }),
+            },
+        ]);
+    } catch (error) {
+        Alert.alert('Error', 'Could not request trip');
+    }
+    }, [origin, destination, tripInfo, selectedVehicle, selectedVehicleData, navigation]);
+
+    Alert.alert('¡Viaje solicitado!', 'Buscando conductor...', [
+    {
+        text: 'Ver seguimiento',
+        onPress: () => navigation.navigate('Tracking', {
+            origin,
+            destination,
+            vehicle: selectedVehicle,
+            price: selectedVehicleData?.price,
+        }),
+    },
+    ]);
 
     return (
         <View style={styles.container}>

@@ -5,6 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import TripHistoryScreen from '../screens/TripHistoryScreen';
+import TrackingScreen from '../screens/TrackingScreen';
 
 // Auth Screens
 import LoginScreen from '../screens/LoginScreen';
@@ -73,6 +74,13 @@ const AppTabs = () => (
   </Tab.Navigator>
 );
 
+const AppStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="Tabs" component={AppTabs} />
+    <Stack.Screen name="Tracking" component={TrackingScreen} />
+  </Stack.Navigator>
+);
+
 const AppNavigator = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -91,7 +99,7 @@ const AppNavigator = () => {
 
   return (
     <NavigationContainer>
-      {user ? <AppTabs /> : <AuthStack />}
+      {user ? <AppStack /> : <AuthStack />}
     </NavigationContainer>
   );
 };
