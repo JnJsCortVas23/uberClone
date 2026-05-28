@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text } from 'react-native';
+import { Text, View, ActivityIndicator } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import TripHistoryScreen from '../screens/TripHistoryScreen';
 import TrackingScreen from '../screens/TrackingScreen';
+import PaymentScreen from '../screens/PaymentScreen';
 
 // Auth Screens
 import LoginScreen from '../screens/LoginScreen';
@@ -78,6 +79,7 @@ const AppStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="Tabs" component={AppTabs} />
     <Stack.Screen name="Tracking" component={TrackingScreen} />
+    <Stack.Screen name="Payment" component={PaymentScreen} />
   </Stack.Navigator>
 );
 
@@ -93,10 +95,15 @@ const AppNavigator = () => {
     return unsubscribe;
   }, []);
 
-  if (loading) {
-    return null;
+if (loading) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff' }}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+        <Text style={{ marginTop: 12, color: COLORS.gray }}>Cargando...</Text>
+      </View>
+    );
   }
-
+  
   return (
     <NavigationContainer>
       {user ? <AppStack /> : <AuthStack />}
