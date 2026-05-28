@@ -15,27 +15,36 @@ import {
   PermissionsAndroid,
   Platform,
 } from 'react-native';
-import MapView, { Marker, Polyline } from 'react-native-maps';
+import MapView, { Marker } from 'react-native-maps';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import Geolocation from '@react-native-community/geolocation';
 import { COLORS } from '../constants';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
+import MapViewDirections from 'react-native-maps-directions';
 
 const GOOGLE_API_KEY = 'AIzaSyAhPtsgbrxI6oO6UEojm1yr_FxOBw9Jjog';
 
 const TripRequestScreen = ({ navigation }) => {
   const mapRef = useRef(null);
-  const [origin, setOrigin] = useState(null);
+
+ 
+  const [origin, setOrigin] = useState({
+    latitude: 6.2442,
+    longitude: -75.5812,
+  });
   const [destination, setDestination] = useState(null);
-  const [routeCoords, setRouteCoords] = useState([]);
   const [selectedVehicle, setSelectedVehicle] = useState('economy');
   const [tripInfo, setTripInfo] = useState(null);
   const [dynamicPrices, setDynamicPrices] = useState({
-    economy: 2000,
-    xl: 3000,
-    premium: 4000,
+    economy: 3500,
+    xl: 5000,
+    premium: 8000,
   });
+
+  
+  const [driverLocation, setDriverLocation] = useState(null);
+  const [tripStatus, setTripStatus] = useState('idle'); 
 
   const calculatePrice = useCallback(distanceMeters => {
     const distanceKm = distanceMeters / 1000;
@@ -46,62 +55,40 @@ const TripRequestScreen = ({ navigation }) => {
     };
   }, []);
 
-  const decodePolyline = useCallback(encoded => {
-    let points = [];
-    let index = 0;
-    let lat = 0;
-    let lng = 0;
-    while (index < encoded.length) {
-      let shift = 0;
-      let result = 0;
-      let byte;
-      do {
-        byte = encoded.charCodeAt(index++) - 63;
-        result |= (byte & 0x1f) << shift;
-        shift += 5;
-      } while (byte >= 0x20);
-      lat += result & 1 ? ~(result >> 1) : result >> 1;
-      shift = 0;
-      result = 0;
-      do {
-        byte = encoded.charCodeAt(index++) - 63;
-        result |= (byte & 0x1f) << shift;
-        shift += 5;
-      } while (byte >= 0x20);
-      lng += result & 1 ? ~(result >> 1) : result >> 1;
-      points.push({ latitude: lat / 1e5, longitude: lng / 1e5 });
-    }
-    return points;
-  }, []);
-
   const requestLocationPermission = useCallback(async () => {
     if (Platform.OS === 'android') {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        {
-          title: 'Permiso de ubicación',
-          message: 'UberClone necesita acceder a tu ubicación',
-          buttonPositive: 'Permitir',
-          buttonNegative: 'Cancelar',
-        },
-      );
-      return granted === PermissionsAndroid.RESULTS.GRANTED;
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          {
+            title: 'Permiso de ubicación',
+            message: 'UberClone necesita acceder a tu ubicación',
+            buttonPositive: 'Permitir',
+            buttonNegative: 'Cancelar',
+          },
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      } catch (err) {
+        return false;
+      }
     }
     return true;
   }, []);
 
+  
   useEffect(() => {
-    // Set Medellin as default origin while GPS loads
-    setOrigin({
-      latitude: 6.2442,
-      longitude: -75.5812,
-    });
-
     const getLocation = async () => {
       const hasPermission = await requestLocationPermission();
       if (!hasPermission) return;
+
       Geolocation.getCurrentPosition(
         position => {
+          if (position.coords.latitude > 35 && position.coords.latitude < 38) {
+            console.log(
+              '📌 GPS del emulador en USA detectado. Manteniendo Medellín por defecto.',
+            );
+            return;
+          }
           setOrigin({
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
@@ -114,46 +101,39 @@ const TripRequestScreen = ({ navigation }) => {
       );
     };
     getLocation();
-  }, []);
+  }, [requestLocationPermission]);
 
-  const handleDestinationSelect = useCallback(
-    (data, details) => {
-      if (!details) return;
-      const dest = {
-        latitude: details.geometry.location.lat,
-        longitude: details.geometry.location.lng,
-      };
-      setDestination(dest);
-      console.log('dest selected:', dest);
+  const handleDestinationSelect = (data, details) => {
+    if (!details) return;
 
-      const currentOrigin = {
-        latitude: 6.2442,
-        longitude: -75.5812,
-      };
+    const dest = {
+      latitude: details.geometry.location.lat,
+      longitude: details.geometry.location.lng,
+    };
+    setDestination(dest);
+    console.log('📍 Destino seleccionado:', dest);
 
-      fetch(
-        `https://maps.googleapis.com/maps/api/directions/json?origin=${currentOrigin.latitude},${currentOrigin.longitude}&destination=${dest.latitude},${dest.longitude}&key=${GOOGLE_API_KEY}`,
-      )
-        .then(res => res.json())
-        .then(data => {
-          console.log('status:', data.status);
-          if (data.routes.length > 0) {
-            const points = decodePolyline(
-              data.routes[0].overview_polyline.points,
-            );
-            setRouteCoords(points);
-            const leg = data.routes[0].legs[0];
-            setTripInfo({
-              distance: leg.distance.text,
-              duration: leg.duration.text,
-            });
-            setDynamicPrices(calculatePrice(leg.distance.value));
-          }
-        })
-        .catch(err => console.log('route error:', err));
-    },
-    [calculatePrice, decodePolyline],
-  );
+    fetch(
+      `https://maps.googleapis.com/maps/api/directions/json?origin=${origin.latitude},${origin.longitude}&destination=${dest.latitude},${dest.longitude}&key=${GOOGLE_API_KEY}`,
+    )
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'OK' && data.routes.length > 0) {
+          const leg = data.routes[0].legs[0];
+          setTripInfo({
+            distance: leg.distance.text,
+            duration: leg.duration.text,
+          });
+          setDynamicPrices(calculatePrice(leg.distance.value));
+        } else {
+          Alert.alert(
+            'Error de Ruta',
+            'Google no pudo calcular una ruta terrestre. Asegúrate de buscar un destino dentro de la misma región (Medellín).',
+          );
+        }
+      })
+      .catch(err => console.log('route error:', err));
+  };
 
   const vehicles = [
     {
@@ -176,47 +156,124 @@ const TripRequestScreen = ({ navigation }) => {
     [selectedVehicle, dynamicPrices],
   );
 
+  
   const handleRequestTrip = useCallback(async () => {
     const user = auth().currentUser;
 
-    if (!tripInfo) {
+    if (!tripInfo || !destination) {
       Alert.alert(
         'Espera',
-        'Calculando ruta, intenta de nuevo en un momento...',
+        'Por favor selecciona un destino válido antes de solicitar.',
       );
       return;
     }
     if (!user) {
-      Alert.alert('Error', 'No hay sesión activa');
+      Alert.alert('Error', 'No hay una sesión activa en la aplicación.');
       return;
     }
 
+    
+    const tempTripId = `temp_trip_${Date.now()}`;
+    let realTripId = null;
+
     try {
-      await firestore().collection('trips').add({
-        userId: user.uid,
-        origin,
-        destination,
-        distance: tripInfo.distance,
-        duration: tripInfo.duration,
-        vehicle: selectedVehicle,
-        price: selectedVehicleData?.price,
-        status: 'requested',
-        createdAt: firestore.FieldValue.serverTimestamp(),
-      });
-      Alert.alert('¡Viaje solicitado!', 'Buscando conductor...', [
-        {
-          text: 'Ver seguimiento',
-          onPress: () =>
-            navigation.navigate('Tracking', {
-              origin,
-              destination,
-              vehicle: selectedVehicle,
-              price: selectedVehicleData?.price,
-            }),
-        },
-      ]);
+      
+      setTripStatus('requested');
+      Alert.alert('Viaje Solicitado', 'Buscando conductor cerca...');
+
+     
+      setTimeout(() => {
+        setTripStatus('driver_coming');
+        setDriverLocation({
+          latitude: origin.latitude + 0.003,
+          longitude: origin.longitude + 0.003,
+        });
+
+       
+        if (realTripId) {
+          firestore()
+            .collection('trips')
+            .doc(realTripId)
+            .update({ status: 'active' })
+            .catch(e => console.log(e));
+        }
+
+        
+        setTimeout(() => {
+          setTripStatus('in_trip');
+          setDriverLocation(null);
+
+          if (realTripId) {
+            firestore()
+              .collection('trips')
+              .doc(realTripId)
+              .update({ status: 'in_trip' })
+              .catch(e => console.log(e));
+          }
+
+         
+          setTimeout(() => {
+            setTripStatus('finished');
+
+            if (realTripId) {
+              firestore()
+                .collection('trips')
+                .doc(realTripId)
+                .update({ status: 'finished' })
+                .catch(e => console.log(e));
+            }
+
+            Alert.alert(
+              'Viaje Finalizado',
+              'Llegaste a tu destino. Procediendo al pago.',
+              [
+                {
+                  text: 'Ir a Pagar',
+                  onPress: () => {
+                    navigation.navigate('Payment', {
+                      tripId: realTripId || tempTripId,
+                      price: selectedVehicleData?.price,
+                      vehicle: selectedVehicle,
+                    });
+                  },
+                },
+              ],
+            );
+          }, 6000);
+        }, 6000);
+      }, 3000);
+
+      
+      firestore()
+        .collection('trips')
+        .add({
+          userId: user.uid,
+          origin: origin,
+          destination: destination,
+          distance: tripInfo.distance,
+          duration: tripInfo.duration,
+          vehicle: selectedVehicle,
+          price: selectedVehicleData?.price,
+          status: 'pending',
+          createdAt: firestore.FieldValue.serverTimestamp(),
+        })
+        .then(docRef => {
+          realTripId = docRef.id;
+          console.log(
+            '🔥 [Firebase] Viaje creado exitosamente en la DB con ID:',
+            realTripId,
+          );
+        })
+        .catch(firebaseError => {
+          console.log(
+            '⚠️ [Firebase Error] No se pudo escribir en Firestore. Revisa las Rules o conexión:',
+          );
+          console.error(firebaseError);
+        });
     } catch (error) {
-      Alert.alert('Error', 'Could not request trip');
+      setTripStatus('idle');
+      Alert.alert('Error', 'Ocurrió un error en el flujo de la aplicación.');
+      console.error(error);
     }
   }, [
     origin,
@@ -229,11 +286,11 @@ const TripRequestScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* Map va primero */}
       <MapView
         ref={mapRef}
         style={styles.map}
-        showsUserLocation={true}
+        showsUserLocation={false}
+        followsUserLocation={false}
         showsMyLocationButton={false}
         initialRegion={{
           latitude: 6.2442,
@@ -245,34 +302,65 @@ const TripRequestScreen = ({ navigation }) => {
           origin
             ? {
                 ...origin,
-                latitudeDelta: 0.01,
-                longitudeDelta: 0.01,
+                latitudeDelta: 0.03,
+                longitudeDelta: 0.03,
               }
             : undefined
-        }>
+        }
+      >
         {origin && (
-          <Marker coordinate={origin} title="Tu ubicación" pinColor={COLORS.primary} />
+          <Marker
+            coordinate={origin}
+            title="Punto de recogida"
+            pinColor={COLORS.primary}
+          />
         )}
+
         {destination && (
           <Marker coordinate={destination} title="Destino" pinColor="red" />
         )}
-        {routeCoords.length > 0 && (
-          <Polyline
-            coordinates={routeCoords}
-            strokeColor={COLORS.primary}
+
+        {driverLocation && (
+          <Marker
+            coordinate={driverLocation}
+            title="Tu Conductor"
+            pinColor="black"
+            description="En camino"
+          />
+        )}
+
+        {origin && destination && (
+          <MapViewDirections
+            origin={origin}
+            destination={destination}
+            apikey={GOOGLE_API_KEY}
             strokeWidth={4}
+            strokeColor={COLORS.primary}
+            onReady={result => {
+              mapRef.current?.fitToCoordinates(result.coordinates, {
+                edgePadding: { top: 70, right: 50, bottom: 380, left: 50 },
+                animated: true,
+              });
+            }}
+          />
+        )}
+
+        {driverLocation && tripStatus === 'driver_coming' && (
+          <MapViewDirections
+            origin={driverLocation}
+            destination={origin}
+            apikey={GOOGLE_API_KEY}
+            strokeWidth={3}
+            strokeColor="#333333"
+            lineDashPattern={[5, 5]}
           />
         )}
       </MapView>
 
-      {/* Search encima del mapa */}
       <View style={styles.searchContainer} pointerEvents="box-none">
         <GooglePlacesAutocomplete
           placeholder="¿A dónde vas?"
-          onPress={(data, details) => {
-            console.log('place selected:', data.description);
-            handleDestinationSelect(data, details);
-          }}
+          onPress={(data, details) => handleDestinationSelect(data, details)}
           fetchDetails={true}
           minLength={2}
           debounce={400}
@@ -290,8 +378,6 @@ const TripRequestScreen = ({ navigation }) => {
             row: styles.searchRow,
             description: styles.searchDescription,
           }}
-          onFail={error => console.log('Places error:', error)}
-          onNotFound={() => console.log('No results found')}
         />
       </View>
 
@@ -311,41 +397,66 @@ const TripRequestScreen = ({ navigation }) => {
             </View>
           )}
 
-          <Text style={styles.categoryTitle}>Selecciona tu vehículo</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {vehicles.map(vehicle => (
-              <TouchableOpacity
-                key={vehicle.id}
-                style={[
-                  styles.vehicleCard,
-                  selectedVehicle === vehicle.id && styles.vehicleCardActive,
-                ]}
-                onPress={() => setSelectedVehicle(vehicle.id)}>
-                <Text style={styles.vehicleEmoji}>{vehicle.emoji}</Text>
-                <Text
+          <Text style={styles.categoryTitle}>
+            {tripStatus === 'idle' && 'Selecciona tu vehículo'}
+            {tripStatus === 'requested' && 'Buscando tu auto...'}
+            {tripStatus === 'driver_coming' && '¡Conductor asignado en camino!'}
+            {tripStatus === 'in_trip' && 'Viajando hacia el destino...'}
+            {tripStatus === 'finished' && '¡Viaje terminado!'}
+          </Text>
+
+          {tripStatus === 'idle' && (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {vehicles.map(vehicle => (
+                <TouchableOpacity
+                  key={vehicle.id}
                   style={[
-                    styles.vehicleLabel,
-                    selectedVehicle === vehicle.id && styles.vehicleLabelActive,
-                  ]}>
-                  {vehicle.label}
-                </Text>
-                <Text
-                  style={[
-                    styles.vehiclePrice,
-                    selectedVehicle === vehicle.id && styles.vehicleLabelActive,
-                  ]}>
-                  ${vehicle.price.toLocaleString()}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+                    styles.vehicleCard,
+                    selectedVehicle === vehicle.id && styles.vehicleCardActive,
+                  ]}
+                  onPress={() => setSelectedVehicle(vehicle.id)}
+                >
+                  <Text style={styles.vehicleEmoji}>{vehicle.emoji}</Text>
+                  <Text
+                    style={[
+                      styles.vehicleLabel,
+                      selectedVehicle === vehicle.id &&
+                        styles.vehicleLabelActive,
+                    ]}
+                  >
+                    {vehicle.label}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.vehiclePrice,
+                      selectedVehicle === vehicle.id &&
+                        styles.vehicleLabelActive,
+                    ]}
+                  >
+                    ${vehicle.price.toLocaleString()}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
 
           <TouchableOpacity
-            style={styles.requestButton}
-            onPress={handleRequestTrip}>
+            style={[
+              styles.requestButton,
+              tripStatus !== 'idle' && { backgroundColor: '#cccccc' },
+            ]}
+            onPress={handleRequestTrip}
+            disabled={tripStatus !== 'idle'}
+          >
             <Text style={styles.requestButtonText}>
-              Solicitar {selectedVehicleData?.label} · $
-              {selectedVehicleData?.price?.toLocaleString()}
+              {tripStatus === 'idle' &&
+                `Solicitar ${
+                  selectedVehicleData?.label
+                } · $${selectedVehicleData?.price?.toLocaleString()}`}
+              {tripStatus === 'requested' && 'Procesando...'}
+              {tripStatus === 'driver_coming' && 'Tu conductor está cerca'}
+              {tripStatus === 'in_trip' && 'Disfruta tu viaje'}
+              {tripStatus === 'finished' && 'Pagar servicio'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -372,10 +483,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     height: 50,
     elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
   },
   searchList: { borderRadius: 12, elevation: 4, marginTop: 4 },
   searchRow: { backgroundColor: COLORS.white, padding: 12 },
