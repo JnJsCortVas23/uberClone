@@ -23,7 +23,7 @@ import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import MapViewDirections from 'react-native-maps-directions';
 
-const GOOGLE_API_KEY = 'AIzaSyAhPtsgbrxI6oO6UEojm1yr_FxOBw9Jjog';
+const GOOGLE_API_KEY = 'YOUR_GOOGLE_API_KEY_HERE';
 
 const TripRequestScreen = ({ navigation }) => {
   const mapRef = useRef(null);

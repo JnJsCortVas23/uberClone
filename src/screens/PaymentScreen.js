@@ -11,7 +11,7 @@ import { WebView } from 'react-native-webview';
 import firestore from '@react-native-firebase/firestore';
 import { COLORS } from '../constants';
 
-const ACCESS_TOKEN = 'APP_USR-3483038761358071-052723-78cac44d2c98953d97eb23f33b510587-3432220132';
+const ACCESS_TOKEN = 'YOUR_GOOGLE_API_KEY_HERE';
 
 const PaymentScreen = ({ route, navigation }) => {
   const { tripId, price, vehicle } = route.params || {};
