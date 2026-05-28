@@ -6,6 +6,7 @@ import { Text } from 'react-native';
 import auth from '@react-native-firebase/auth';
 
 // Auth Screens
+import SplashScreen from '../screens/SplashScreen';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 
@@ -72,6 +73,7 @@ const AppTabs = () => (
 const AppNavigator = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
     const unsubscribe = auth().onAuthStateChanged(currentUser => {
@@ -81,8 +83,13 @@ const AppNavigator = () => {
     return unsubscribe;
   }, []);
 
-  if (loading) {
-    return null;
+  useEffect(() => {
+    const timer = setTimeout(() => setShowSplash(false), 2500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading || showSplash) {
+    return showSplash ? <SplashScreen /> : null;
   }
 
   return (
