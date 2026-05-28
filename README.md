@@ -1,37 +1,39 @@
-# 🚗 UberClone — Aplicación Móvil de Transporte
+# UberClone — Ride-Hailing Mobile App
 
-> **"Tus viajes más parchados"**  
-> Proyecto Final — Desarrollo Móvil 2026-1  
-> Tecnológico de Antioquia · Docente: Paula Andrea Muñoz Correa
-
----
-
-## 📋 Descripción
-
-Aplicación móvil multiplataforma inspirada en Uber, construida con **React Native CLI** para iOS y Android. Integra un ecosistema completo de APIs de Google y Firebase para ofrecer una experiencia de movilidad fluida y en tiempo real.
+> **"Your smoothest rides"**  
+> Final Project — Mobile Development 2026-1  
+> Tecnológico de Antioquia · Instructor: Paula Andrea Muñoz Correa
 
 ---
 
-## ⚙️ Requisitos previos
+## Description
 
-Antes de clonar el proyecto, asegúrate de tener instalado:
-| Herramienta | Versión recomendada |
+Cross-platform mobile app inspired by Uber, built with **React Native CLI** for iOS and Android. It integrates Google APIs and Firebase to deliver a smooth, real-time mobility experience.
+
+---
+
+## Prerequisites
+
+Before cloning the project, make sure you have:
+
+| Tool | Recommended version |
 |---|---|
-| Node.js | v18 o superior |
+| Node.js | v18 or higher |
 | JDK | 17 |
-| Android Studio | Flamingo o superior |
-| React Native CLI | última versión |
-| Git | cualquier versión reciente |
+| Android Studio | Flamingo or higher |
+| React Native CLI | latest |
+| Git | any recent version |
 
-### Configurar variables de entorno (Windows)
+### Environment variables (Windows)
 
-Agrega estas variables en las **Variables de entorno del sistema**:
+Add these in **System Environment Variables**:
 
 ```
-ANDROID_HOME = C:\Users\TU_USUARIO\AppData\Local\Android\Sdk
+ANDROID_HOME = C:\Users\YOUR_USER\AppData\Local\Android\Sdk
 ```
 
-Agrega al **PATH**:
+Add to **PATH**:
+
 ```
 %ANDROID_HOME%\emulator
 %ANDROID_HOME%\platform-tools
@@ -41,7 +43,7 @@ Agrega al **PATH**:
 
 ---
 
-## 📥 Clonar el repositorio
+## Clone the repository
 
 ```bash
 git clone https://github.com/JnJsCortVas23/uberClone.git
@@ -50,214 +52,296 @@ cd uberClone
 
 ---
 
-## 📦 Instalar dependencias
+## Install dependencies
 
-Ejecuta estos comandos en orden:
+Run these commands in order, or use `npm install` to install everything from `package.json`:
 
-**1. Dependencias principales de navegación y estado:**
+**1. Navigation and state:**
+
 ```bash
 npm install @react-navigation/native @react-navigation/stack @react-navigation/bottom-tabs react-native-screens react-native-safe-area-context react-native-gesture-handler react-native-vector-icons redux @reduxjs/toolkit react-redux
 ```
 
-**2. Firebase (Auth + Firestore):**
+**2. Firebase (Auth + Firestore + Storage):**
+
 ```bash
-npm install @react-native-firebase/app @react-native-firebase/auth @react-native-firebase/firestore
+npm install @react-native-firebase/app @react-native-firebase/auth @react-native-firebase/firestore @react-native-firebase/storage
 ```
 
-**3. Google Maps y Places:**
+**3. Google Maps and Places:**
+
 ```bash
 npm install react-native-maps react-native-google-places-autocomplete
 ```
 
-**4. Geolocalización:**
+**4. Geolocation and directions:**
+
 ```bash
-npm install @react-native-community/geolocation
+npm install react-native-maps react-native-google-places-autocomplete react-native-maps-directions @react-native-community/geolocation
 ```
 
-**5. Permisos en Android:**
+**5. Android permissions:**
+
 ```bash
 npm install react-native-permissions
 ```
 
+**6. Image picker (profile photo):**
+
+```bash
+npm install react-native-image-picker
+```
+
+**7. WebView (Mercado Pago payment gateway):**
+
+```bash
+npm install react-native-webview
+```
+
 ---
 
-## 🔥 Configurar Firebase
+## Firebase setup
 
-El proyecto usa Firebase para autenticación y base de datos. Debes agregar el archivo de configuración:
+The project uses Firebase for authentication and database. You must add the configuration file:
 
-1. Solicita el archivo `google-services.json` a tu compañero de equipo
-2. Colócalo en la ruta: `android/app/google-services.json`
+1. Request `google-services.json` from your teammate
+2. Place it at: `android/app/google-services.json`
 
-> ⚠️ Este archivo **no está en el repositorio** por seguridad. Sin él la app no compilará correctamente.
+> This file is **not in the repository** for security reasons. The app will not build correctly without it.
+
+### Firestore rules (trips and history)
+
+Allow authenticated users to read and write their own data:
+
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /trips/{tripId} {
+      allow read, update, delete: if request.auth != null
+        && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null
+        && request.auth.uid == request.resource.data.userId;
+    }
+    match /users/{userId} {
+      allow read, write: if request.auth != null
+        && request.auth.uid == userId;
+    }
+  }
+}
+```
 
 ---
 
-## 🗺️ Configurar Google Maps API
+## Google Maps API setup
 
-El proyecto usa Google Maps, Places y Directions API. Necesitas agregar la API Key:
+The project uses Google Maps, Places, and Directions. You need an API key:
 
-1. Solicita la API Key al equipo
-2. Abre `android/app/src/main/AndroidManifest.xml`
-3. Busca esta línea y reemplaza el valor:
+1. Request the API key from your team
+2. Open `android/app/src/main/AndroidManifest.xml`
+3. Replace the value in:
 
 ```xml
 <meta-data
   android:name="com.google.android.geo.API_KEY"
-  android:value="TU_API_KEY_AQUI"/>
+  android:value="YOUR_API_KEY_HERE"/>
 ```
 
-4. Abre `src/screens/TripRequestScreen.js` y reemplaza:
+4. Open `src/screens/TripRequestScreen.js` and replace:
 
 ```js
-const GOOGLE_API_KEY = 'TU_API_KEY_AQUI';
+const GOOGLE_API_KEY = 'YOUR_API_KEY_HERE';
 ```
 
-> ⚠️ Sin la API Key el mapa y el buscador de destinos no funcionarán.
+> Without a valid API key, the map and destination search will not work.
+
+### Enabled APIs
+
+At [console.cloud.google.com](https://console.cloud.google.com), enable:
+
+- Maps SDK for Android
+- Places API
+- Directions API
+- Distance Matrix API
+- Geocoding API
+
+Create an API key (unrestricted for development is fine for early testing).
 
 ---
 
-## 🌿 Crear tu rama de trabajo
+## Mercado Pago setup
 
-Cada integrante debe trabajar en su propia rama:
+The app uses Mercado Pago as a digital payment gateway through a WebView:
 
-```bash
-git checkout -b feature/tu-nombre
+1. Create an account at [developers.mercadopago.com](https://www.mercadopago.com.co/developers)
+2. Create a new application
+3. Get your test credentials (Access Token starting with `TEST-`)
+4. Open `src/screens/PaymentScreen.js` and replace:
+
+```js
+const ACCESS_TOKEN = 'YOUR_ACCESS_TOKEN_HERE';
 ```
 
-Confirma que estás en tu rama:
+### Cash payments
+
+Users can also pay **in cash** to the driver. No WebView is required; the trip is saved in Firestore with `paymentMethod: 'cash'`.
+
+---
+
+## Create your working branch
+
+Each team member should work on their own branch:
+
+```bash
+git checkout -b feature/your-name
+```
+
+Confirm you are on your branch:
+
 ```bash
 git branch
 ```
 
 ---
 
-## ▶️ Correr la app
+## Run the app
 
-Necesitas **dos terminales abiertas al mismo tiempo**:
+You need **two terminals open at the same time**:
 
-**Terminal 1 — Iniciar Metro (espera a que diga "Metro waiting on port 8081"):**
+**Terminal 1 — Start Metro (wait until it says "Metro waiting on port 8081"):**
+
 ```bash
 npx react-native start --reset-cache
 ```
 
-**Terminal 2 — Compilar e instalar en el dispositivo:**
+**Terminal 2 — Build and install on the device:**
+
 ```bash
 npx react-native run-android
 ```
 
-> 💡 Si usas dispositivo físico, activa la **Depuración USB** en Opciones de desarrollador y conecta el cable antes de correr el comando.
+> On a physical device, enable **USB debugging** in Developer options and connect the cable before running the command.
 
-Verifica que el dispositivo es detectado:
+Verify the device is detected:
+
 ```bash
 adb devices
 ```
 
 ---
 
-## 📁 Estructura del proyecto
+## Project structure
 
 ```
-uberClone/
+UberClone/
 ├── android/
 │   └── app/
-│       ├── google-services.json        ← va aquí (no está en el repo)
-│       └── src/main/AndroidManifest.xml  ← aquí va la API Key de Google
+│       ├── google-services.json              ← place here (not in repo)
+│       └── src/main/AndroidManifest.xml      ← Google Maps API key
 ├── src/
 │   ├── constants/
-│   │   ├── colors.js              # Paleta de colores de la app
+│   │   ├── colors.js                         # App color palette
 │   │   └── index.js
 │   ├── navigation/
-│   │   └── AppNavigator.js        # Stack + Bottom Tab Navigator
+│   │   └── AppNavigator.js                   # Stack + Bottom Tab Navigator
 │   ├── screens/
-│   │   ├── LoginScreen.js         # ✅ Login con validación
-│   │   ├── RegisterScreen.js      # ✅ Registro con validación
-│   │   ├── HomeScreen.js          # ✅ Pantalla principal
-│   │   ├── ProfileScreen.js       # ✅ Perfil editable
-│   │   ├── TripRequestScreen.js   # ✅ Mapa + solicitud de viaje + tarifas dinámicas
-│   │   └── TripHistoryScreen.js   # 🔜 Historial de viajes
+│   │   ├── SplashScreen.js                   # Splash / loading
+│   │   ├── LoginScreen.js                    # Login with validation
+│   │   ├── RegisterScreen.js                 # Registration with validation
+│   │   ├── HomeScreen.js                     # Home / welcome
+│   │   ├── ProfileScreen.js                  # Editable profile (Firestore)
+│   │   ├── TripRequestScreen.js              # Map, trip request, dynamic fares
+│   │   ├── TrackingScreen.js                 # Real-time trip tracking
+│   │   ├── PaymentScreen.js                  # Mercado Pago + cash payments
+│   │   └── TripHistoryScreen.js              # Trip history (Firestore)
 │   └── services/
-│       └── authService.js         # Firebase Auth + Firestore
+│       └── authService.js                    # Firebase Auth + Firestore
 ├── App.js
-└── babel.config.js
+├── babel.config.js
+└── package.json
 ```
 
 ---
 
-## 🎨 Paleta de colores
+## Color palette
 
 | Color | Hex |
 |---|---|
-| Azul principal | `#1A73E8` |
-| Azul oscuro | `#0D47A1` |
-| Blanco | `#FFFFFF` |
-| Fondo | `#F5F8FF` |
+| Primary blue | `#1A73E8` |
+| Dark blue | `#0D47A1` |
+| White | `#FFFFFF` |
+| Background | `#F5F8FF` |
 
 ---
 
-## 🛠️ Tecnologías utilizadas
+## Technologies
 
-- **React Native CLI** — UI multiplataforma
-- **Firebase Auth** — Autenticación de usuarios
-- **Firebase Firestore** — Base de datos no relacional
-- **Redux Toolkit** — Estado global
-- **React Navigation** — Navegación entre pantallas (Stack + Bottom Tabs)
-- **Google Maps API** — Mapas y rutas
-- **Google Places API** — Búsqueda de destinos con Autocomplete
-- **Google Directions API** — Cálculo y dibujado de rutas
-- **Google Distance Matrix API** — Estimación de tiempo y tarifas dinámicas
-- **Stripe / MercadoPago** — Pasarela de pagos (próximamente)
-- **Git** — Control de versiones
+- **React Native CLI** — Cross-platform UI
+- **Firebase Auth** — User authentication
+- **Firebase Firestore** — NoSQL database
+- **Firebase Storage** — Profile images
+- **Redux Toolkit** — Global state
+- **React Navigation** — Stack + Bottom Tabs navigation
+- **Google Maps API** — Maps and routes
+- **Google Places API** — Destination autocomplete
+- **Google Directions API** — Route calculation and drawing
+- **Google Distance Matrix API** — ETA and dynamic fare estimates
+- **Mercado Pago** — Digital payments (WebView)
+- **Cash payments** — Pay driver in cash (Firestore)
+- **Git** — Version control
 
 ---
 
-## 💰 Lógica de tarifas dinámicas
+## Dynamic fare logic
 
-Los precios se calculan en tiempo real según la distancia de la ruta:
+Prices are calculated in real time from route distance:
 
-| Categoría | Tarifa base | Por km |
+| Category | Base fare | Per km |
 |---|---|---|
-| Económico | $3.500 | $1.200 |
-| XL | $5.000 | $1.800 |
-| Premium | $8.000 | $2.500 |
+| Economy | $3,500 COP | $1,200 COP |
+| XL | $5,000 COP | $1,800 COP |
+| Premium | $8,000 COP | $2,500 COP |
 
 ---
 
-## 📌 Flujo de trabajo Git
+## Git workflow
 
 ```bash
-# Siempre trabaja en tu rama
-git checkout feature/Nombre_Rama #Normalmete su nombre
+# Always work on your branch
+git checkout feature/Your_Name
 
-# Guarda tus cambios
+# Save your changes
 git add .
-git commit -m "feat: descripción de lo que hiciste, pero en inglés"
+git commit -m "feat: describe what you did in English"
 git push
 
-# Cuando su parte esté lista, avise para subirlo al main
+# When your part is ready, notify the team before merging to main
 ```
 
-> ⚠️ **No haga push directo a `main`**. Suba sus cambios a su rama.
+> **Do not push directly to `main`**. Push your changes to your feature branch.
 
 ---
 
-## 📲 Pantallas implementadas
+## Implemented features
 
-- [x] Login con validación de campos
-- [x] Registro con validación de campos
-- [x] Perfil de usuario editable (sincronizado con Firestore)
-- [x] Solicitud de viaje con Google Maps + Places Autocomplete + rutas
-- [x] Tarifas dinámicas según distancia real
-- [ ] Seguimiento en tiempo real
-- [ ] Pasarela de pagos
-- [ ] Historial de viajes
+- [x] Login with field validation
+- [x] Registration with field validation
+- [x] Splash screen
+- [x] Home screen with user welcome
+- [x] Editable user profile (synced with Firestore)
+- [x] Trip request with Google Maps + Places Autocomplete + routes
+- [x] Dynamic fares based on real distance
+- [x] Real-time trip tracking
+- [x] Payment gateway (Mercado Pago via WebView)
+- [x] Cash payment option
+- [x] Trip history (Firestore, client-side sorting)
+- [x] README documentation in English
 
 ---
 
-## 👥 Equipo
+## Team
 
-| Nombre | Rama |
+| Name | Branch |
 |---|---|
 | Cortes | `feature/Cortes` |
 | Muñoz | `feature/munos` |
-
----
