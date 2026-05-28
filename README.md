@@ -61,7 +61,7 @@ npm install @react-navigation/native @react-navigation/stack @react-navigation/b
 
 **2. Firebase (Auth + Firestore):**
 ```bash
-npm install @react-native-firebase/app @react-native-firebase/auth @react-native-firebase/firestore
+npm install @react-native-firebase/app @react-native-firebase/auth @react-native-firebase/firestore @react-native-firebase/storage
 ```
 
 **3. Google Maps y Places:**
@@ -78,7 +78,14 @@ npm install @react-native-community/geolocation
 ```bash
 npm install react-native-permissions
 ```
-
+**6. Image picker (profile photo):**
+```bash
+npm install react-native-image-picker
+```
+**7. WebView (MercadoPago payment gateway):**
+```bash
+npm install react-native-webview
+```
 ---
 
 ## 🔥 Configurar Firebase
@@ -114,8 +121,44 @@ const GOOGLE_API_KEY = 'TU_API_KEY_AQUI';
 
 > ⚠️ Sin la API Key el mapa y el buscador de destinos no funcionarán.
 
+🗺️ Configuración de la API de Google Maps
+El proyecto utiliza las APIs de Maps, Places, Directions y Distance Matrix. Necesitas una clave API válida (API Key) con la facturación habilitada:
+
+Ve a console.cloud.google.com.
+
+Habilita las siguientes APIs:
+
+Maps SDK for Android
+
+Places API
+
+Directions API
+
+Distance Matrix API
+
+Geocoding API
+
+Crea una clave API (API Key) sin restricciones (para la fase de desarrollo).
+
+Abre el archivo android/app/src/main/AndroidManifest.xml y reemplaza:
+
 ---
 
+
+
+💳 Configuración de Mercado Pago
+La aplicación utiliza Mercado Pago como pasarela de pago a través de un WebView:
+
+Crea una cuenta en developers.mercadopago.com.
+
+Crea una nueva aplicación dentro de la plataforma.
+
+Obtén tus credenciales de prueba (Access Token y Public Key que comiencen con TEST-).
+
+Abre el archivo src/screens/PaymentScreen.js y reemplaza:
+
+const ACCESS_TOKEN = 'TU_ACCESS_TOKEN_AQUÍ';
+---
 ## 🌿 Crear tu rama de trabajo
 
 Cada integrante debe trabajar en su propia rama:
