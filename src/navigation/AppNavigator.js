@@ -2,8 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text } from 'react-native';
+import { Text, View, ActivityIndicator } from 'react-native';
 import auth from '@react-native-firebase/auth';
+import TripHistoryScreen from '../screens/TripHistoryScreen';
+import TrackingScreen from '../screens/TrackingScreen';
+import PaymentScreen from '../screens/PaymentScreen';
 
 // Auth Screens
 import SplashScreen from '../screens/SplashScreen';
@@ -46,6 +49,7 @@ const AppTabs = () => (
           Home: 'Inicio',
           Trip: 'Viaje',
           Profile: 'Perfil',
+          History: 'Historial',
         };
         return (
           <Text style={{ color, fontSize: 12, fontWeight: '600' }}>
@@ -58,6 +62,7 @@ const AppTabs = () => (
           Home: '🏠',
           Trip: '🗺️',
           Profile: '👤',
+          History: '🕐',
         };
         return (
           <Text style={{ fontSize: size - 4 }}>{icons[route.name]}</Text>
@@ -67,7 +72,16 @@ const AppTabs = () => (
     <Tab.Screen name="Home" component={HomeScreen} />
     <Tab.Screen name="Profile" component={ProfileScreen} />
     <Tab.Screen name="Trip" component={TripRequestScreen} />
+    <Tab.Screen name="History" component={TripHistoryScreen} />
   </Tab.Navigator>
+);
+
+const AppStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="Tabs" component={AppTabs} />
+    <Stack.Screen name="Tracking" component={TrackingScreen} />
+    <Stack.Screen name="Payment" component={PaymentScreen} />
+  </Stack.Navigator>
 );
 
 const AppNavigator = () => {
@@ -83,18 +97,13 @@ const AppNavigator = () => {
     return unsubscribe;
   }, []);
 
-  useEffect(() => {
-    const timer = setTimeout(() => setShowSplash(false), 2500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (loading || showSplash) {
-    return showSplash ? <SplashScreen /> : null;
+  if (loading) {
+    return null;
   }
-
+  
   return (
     <NavigationContainer>
-      {user ? <AppTabs /> : <AuthStack />}
+      {user ? <AppStack /> : <AuthStack />}
     </NavigationContainer>
   );
 };

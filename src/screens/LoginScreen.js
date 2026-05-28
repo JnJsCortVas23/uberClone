@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
     View,
     Text,
@@ -19,12 +19,12 @@ const LoginScreen = ({ navigation }) => {
     const [showPassword, setShowPassword] = useState(false);
     const [errors, setErrors] = useState({});
 
-    const validateEmail = value => {
+    const validateEmail = useCallback((value) => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(value);
-    };
+    }, []);
 
-    const validate = () => {
+    const validate = useCallback(() => {
         const newErrors = {};
         if (!email) {
             newErrors.email = 'El correo es requerido';
@@ -38,9 +38,9 @@ const LoginScreen = ({ navigation }) => {
         }
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
-    };
+    }, [email, password]);
 
-    const handleLogin = async () => {
+    const handleLogin = useCallback(async () => {
         if (validate()) {
             const result = await loginUser(email, password);
             if (result.success) {
@@ -50,7 +50,7 @@ const LoginScreen = ({ navigation }) => {
                 setErrors({ general: 'Correo o contraseña incorrectos' });
             }
         }
-    };
+    }, [email, password, validate]);
 
     return (
         <KeyboardAvoidingView
