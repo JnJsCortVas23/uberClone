@@ -5,7 +5,6 @@ import {
     TextInput,
     TouchableOpacity,
     StyleSheet,
-    Image,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
@@ -111,10 +110,10 @@ const LoginScreen = ({ navigation }) => {
                         <Text style={styles.errorText}>{errors.password}</Text>
                     )}
 
-                    {/* Forgot password */}
+                    {/* Forgot password 
                     <TouchableOpacity style={styles.forgotButton}>
                         <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity>*/}
 
                     {/* Login Button */}
                     <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>

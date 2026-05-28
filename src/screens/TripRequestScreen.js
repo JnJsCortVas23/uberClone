@@ -23,12 +23,16 @@ import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import MapViewDirections from 'react-native-maps-directions';
 
+<<<<<<< HEAD
 const GOOGLE_API_KEY = 'YOUR_GOOGLE_API_KEY_HERE';
+=======
+const GOOGLE_API_KEY = 'AIzaSyCEwXYv8x_fvvk8anRJE4E-38JXQaXlu6U';
+>>>>>>> ff49ced (Fix: search location and payment gateway)
 
 const TripRequestScreen = ({ navigation }) => {
   const mapRef = useRef(null);
 
- 
+
   const [origin, setOrigin] = useState({
     latitude: 6.2442,
     longitude: -75.5812,
@@ -42,16 +46,16 @@ const TripRequestScreen = ({ navigation }) => {
     premium: 8000,
   });
 
-  
+
   const [driverLocation, setDriverLocation] = useState(null);
-  const [tripStatus, setTripStatus] = useState('idle'); 
+  const [tripStatus, setTripStatus] = useState('idle');
 
   const calculatePrice = useCallback(distanceMeters => {
     const distanceKm = distanceMeters / 1000;
     return {
-      economy: Math.round((3500 + distanceKm * 1200) / 100) * 100,
-      xl: Math.round((5000 + distanceKm * 1800) / 100) * 100,
-      premium: Math.round((8000 + distanceKm * 2500) / 100) * 100,
+      economy: Math.round((1 + distanceKm * 1600) / 100) * 100,
+      xl: Math.round((5000 + distanceKm * 2100) / 100) * 100,
+      premium: Math.round((8000 + distanceKm * 2800) / 100) * 100,
     };
   }, []);
 
@@ -75,7 +79,7 @@ const TripRequestScreen = ({ navigation }) => {
     return true;
   }, []);
 
-  
+
   useEffect(() => {
     const getLocation = async () => {
       const hasPermission = await requestLocationPermission();
@@ -156,7 +160,7 @@ const TripRequestScreen = ({ navigation }) => {
     [selectedVehicle, dynamicPrices],
   );
 
-  
+
   const handleRequestTrip = useCallback(async () => {
     const user = auth().currentUser;
 
@@ -172,16 +176,16 @@ const TripRequestScreen = ({ navigation }) => {
       return;
     }
 
-    
+
     const tempTripId = `temp_trip_${Date.now()}`;
     let realTripId = null;
 
     try {
-      
+
       setTripStatus('requested');
       Alert.alert('Viaje Solicitado', 'Buscando conductor cerca...');
 
-     
+
       setTimeout(() => {
         setTripStatus('driver_coming');
         setDriverLocation({
@@ -189,7 +193,7 @@ const TripRequestScreen = ({ navigation }) => {
           longitude: origin.longitude + 0.003,
         });
 
-       
+
         if (realTripId) {
           firestore()
             .collection('trips')
@@ -198,7 +202,7 @@ const TripRequestScreen = ({ navigation }) => {
             .catch(e => console.log(e));
         }
 
-        
+
         setTimeout(() => {
           setTripStatus('in_trip');
           setDriverLocation(null);
@@ -211,7 +215,7 @@ const TripRequestScreen = ({ navigation }) => {
               .catch(e => console.log(e));
           }
 
-         
+
           setTimeout(() => {
             setTripStatus('finished');
 
@@ -243,7 +247,7 @@ const TripRequestScreen = ({ navigation }) => {
         }, 6000);
       }, 3000);
 
-      
+
       firestore()
         .collection('trips')
         .add({
@@ -301,10 +305,10 @@ const TripRequestScreen = ({ navigation }) => {
         region={
           origin
             ? {
-                ...origin,
-                latitudeDelta: 0.03,
-                longitudeDelta: 0.03,
-              }
+              ...origin,
+              latitudeDelta: 0.03,
+              longitudeDelta: 0.03,
+            }
             : undefined
         }
       >
@@ -360,17 +364,19 @@ const TripRequestScreen = ({ navigation }) => {
       <View style={styles.searchContainer} pointerEvents="box-none">
         <GooglePlacesAutocomplete
           placeholder="¿A dónde vas?"
-          onPress={(data, details) => handleDestinationSelect(data, details)}
+          onPress={handleDestinationSelect}
           fetchDetails={true}
           minLength={2}
-          debounce={400}
-          enablePoweredByContainer={false}
-          keyboardShouldPersistTaps="always"
+          debounce={300}
+          nearbyPlacesAPI="GooglePlacesSearch"
           query={{
             key: GOOGLE_API_KEY,
             language: 'es',
             components: 'country:co',
-            types: 'geocode',
+          }}
+          requestUrl={{
+            useOnPlatform: 'android',
+            url: 'https://maps.googleapis.com/maps/api',
           }}
           styles={{
             textInput: styles.searchInput,
@@ -378,6 +384,7 @@ const TripRequestScreen = ({ navigation }) => {
             row: styles.searchRow,
             description: styles.searchDescription,
           }}
+          enablePoweredByContainer={false}
         />
       </View>
 
@@ -421,7 +428,7 @@ const TripRequestScreen = ({ navigation }) => {
                     style={[
                       styles.vehicleLabel,
                       selectedVehicle === vehicle.id &&
-                        styles.vehicleLabelActive,
+                      styles.vehicleLabelActive,
                     ]}
                   >
                     {vehicle.label}
@@ -430,7 +437,7 @@ const TripRequestScreen = ({ navigation }) => {
                     style={[
                       styles.vehiclePrice,
                       selectedVehicle === vehicle.id &&
-                        styles.vehicleLabelActive,
+                      styles.vehicleLabelActive,
                     ]}
                   >
                     ${vehicle.price.toLocaleString()}
@@ -450,8 +457,7 @@ const TripRequestScreen = ({ navigation }) => {
           >
             <Text style={styles.requestButtonText}>
               {tripStatus === 'idle' &&
-                `Solicitar ${
-                  selectedVehicleData?.label
+                `Solicitar ${selectedVehicleData?.label
                 } · $${selectedVehicleData?.price?.toLocaleString()}`}
               {tripStatus === 'requested' && 'Procesando...'}
               {tripStatus === 'driver_coming' && 'Tu conductor está cerca'}

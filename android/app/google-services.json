@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "971126529616",
-    "project_id": "uberclone-803cf",
-    "storage_bucket": "uberclone-803cf.firebasestorage.app"
+    "project_number": "871802762143",
+    "project_id": "uberclone-3adc9",
+    "storage_bucket": "uberclone-3adc9.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:971126529616:android:23d636012c3d01d282fb55",
+        "mobilesdk_app_id": "1:871802762143:android:ef0e2003db6ffaca8a43aa",
         "android_client_info": {
           "package_name": "com.uberclone"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAhPtsgbrxI6oO6UEojm1yr_FxOBw9Jjog"
+          "current_key": "AIzaSyDqfTapaaDTQ-c6g8Iofr3YeOXX5BREkro"
         }
       ],
       "services": {

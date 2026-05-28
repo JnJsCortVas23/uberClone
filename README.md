@@ -71,7 +71,7 @@ npm install react-native-maps react-native-google-places-autocomplete
 
 **4. Geolocalización:**
 ```bash
-npm install @react-native-community/geolocation
+npm install react-native-maps react-native-google-places-autocomplete react-native-maps-directions
 ```
 
 **5. Permisos en Android:**

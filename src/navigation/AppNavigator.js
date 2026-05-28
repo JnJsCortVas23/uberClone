@@ -97,9 +97,14 @@ const AppNavigator = () => {
     return unsubscribe;
   }, []);
 
-  if (loading) {
-    return null;
-  }
+  useEffect(() => {
+  const timer = setTimeout(() => setShowSplash(false), 2500);
+  return () => clearTimeout(timer);
+}, []);
+
+  if (loading || showSplash) {
+  return showSplash ? <SplashScreen /> : null;
+}
   
   return (
     <NavigationContainer>

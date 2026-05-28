@@ -49,6 +49,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: COLORS.primary,
     marginBottom: 4,
+    textAlign: 'center',
+    width: '100%',
   },
   name: {
     fontSize: 22,
@@ -60,6 +62,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.gray,
     marginBottom: 40,
+    textAlign: 'center',
+    width: '100%',
   },
   logoutButton: {
     backgroundColor: COLORS.secondary,
